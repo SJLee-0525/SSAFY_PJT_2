@@ -1,0 +1,70 @@
+services:
+  client:
+    container_name: my-nginx
+    build:
+      context: ./frontend # client 폴더를 빌드 컨텍스트로 지정
+      dockerfile: Dockerfile # 클라이언트용 Dockerfile 경로 (디폴트는 'Dockerfile')
+      # args:
+      #   BRANCH_NAME: ${BRANCH_NAME}
+      #   VITE_API_URL: ${VITE_API_URL}
+    ports:
+      - "80:80" # ec2 url은 80번 포트만 열려있음
+      - "443:443"
+    volumes:
+      - /home/ubuntu/front_build:/usr/share/nginx
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    networks:
+      - app-network
+
+  jenkins:
+    build:
+      context: ./jenkins # Jenkins 코드가 있는 폴더
+      dockerfile: Dockerfile # Jenkins용 Dockerfile
+    # image: jenkins/jenkins:lts  # 최신 LTS 버전 사용
+    environment:
+      - TZ=Asia/Seoul
+    container_name: my-jenkins
+    user: root # 권한 문제 방지 (필수)
+    ports:
+      - "8081:8080" # 웹 UI 접근 (기본 포트 8080)
+      - "50000:50000" # 에이전트와 통신용 포트
+    volumes:
+      - /home/ubuntu/jenkins_data:/var/jenkins_home # Jenkins 데이터 유지
+      - /home/ubuntu/jenkins_ssh:/root/.ssh # Jenkins 데이터 유지
+      - /home/ubuntu/front_build:/front_build # 클라이언트 빌드 결과물
+      - /var/run/docker.sock:/var/run/docker.sock # Docker 컨테이너 제어를 위해 필요
+    restart: always
+
+  db:
+    image: mysql:8
+    container_name: my-mysql-release
+    environment:
+      - TZ=Asia/Seoul
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - /home/ubuntu/mysql_data/release:/var/lib/mysql
+      - ./database/my.cnf:/etc/mysql/conf.d/custom.cnf
+    networks:
+      - app-network
+    restart: always
+
+  master_db:
+    image: mysql:8
+    container_name: my-mysql-master
+    environment:
+      - TZ=Asia/Seoul
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - /home/ubuntu/mysql_data/master:/var/lib/mysql
+      - ./database/my.cnf:/etc/mysql/conf.d/custom.cnf
+    networks:
+      - app-network
+    restart: always
+
+networks:
+  app-network:
+    name: app-network # ✅ 공통 네트워크 설정
+    driver: bridge
+
+volumes:
+  mysql-data:

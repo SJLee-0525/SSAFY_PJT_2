@@ -1,0 +1,43 @@
+services:
+  elasticsearch:
+    container_name: my-elasticSearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.3
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"  # 메모리 설정
+      - xpack.security.enabled=true  # ✅ X-Pack Security 활성화
+      - xpack.security.authc.api_key.enabled=true
+    ports:
+      - "9200:9200"  # ✅ 외부에서 접근 가능 (localhost:9200)
+      - "9300:9300"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data  # ✅ 양방향 (데이터 유지)
+      - elasticsearch-config:/usr/share/elasticsearch/config  # ✅ 설정 유지
+    networks:
+      - app-network
+    restart: always
+
+  kibana:
+    container_name: my-kibana
+    image: docker.elastic.co/kibana/kibana:7.17.3
+    environment:
+      - ELASTICSEARCH_HOSTS=http://my-elasticSearch:9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD="${ELASTICSEARCH_PASSWORD}"  # ✅ 비밀번호 추가!
+    ports:
+      - "5601:5601"  # ✅ Kibana 웹 UI 접근 (localhost:5601)
+    depends_on:
+      - elasticsearch
+    networks:
+      - app-network
+    restart: always
+
+volumes:
+  elasticsearch-data:
+    driver: local
+  elasticsearch-config:
+    driver: local
+
+networks:
+  app-network:
+    external: true

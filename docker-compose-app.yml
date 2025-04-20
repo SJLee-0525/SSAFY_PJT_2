@@ -1,0 +1,41 @@
+services:
+  server:
+    container_name: my-springboot-${BRANCH_NAME}
+    environment:
+      - TZ=Asia/Seoul
+      - HOST_URL=${HOST_URL}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} # .env에서 가져옴
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - FASTAPI_API_URL=${FASTAPI_API_URL}
+      - MYSQL_HOST=${MYSQL_HOST}
+      - X_API=${X_API}
+      - ADMIN_PW=${ADMIN_PW}
+    build:
+      context: ./backend # server 폴더를 빌드 컨텍스트로 지정
+      dockerfile: Dockerfile # 서버용 Dockerfile 경로
+    ports:
+      - "${SPRING_BOOT_PORT}:8080" # 서버 포트 연결
+    networks:
+      - app-network
+
+  fastapi: # FastAPI 서비스 추가! 🚀
+    container_name: my-fastapi-${BRANCH_NAME}
+    environment:
+      - TZ=Asia/Seoul
+      - YOUTUBE_API_KEYS=${YOUTUBE_API_KEYS}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - USDA_API_KEY=${USDA_API_KEY}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - FASTAPI_SECURITY_KEY=${FASTAPI_SECURITY_KEY}
+      - ENV=${FASTAPI_PROFILE}
+    build:
+      context: ./ai # FastAPI 코드가 있는 폴더
+      dockerfile: Dockerfile # FastAPI용 Dockerfile
+    ports:
+      - "${FASTAPI_PORT}:8000" # FastAPI는 기본적으로 8000번 포트 사용
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true
