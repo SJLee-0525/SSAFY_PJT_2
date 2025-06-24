@@ -63,10 +63,7 @@ const HomeIngredients = ({ isFilterOpen }: { isFilterOpen: boolean }) => {
     <div className="relative w-full h-full">
       {isFilterOpen && <div className="absolute inset-0 w-full h-full bg-transparent pointer-events-auto z-20" />}
 
-      <div
-        ref={containerRef}
-        className="flex flex-col justify-between items-center w-full h-full py-2 overflow-hidden"
-      >
+      <div ref={containerRef} className="flex flex-col justify-between items-center w-full h-full py-2 overflow-hidden">
         <div
           className="flex justify-between items-start w-full h-[95%] transition-transform duration-300 ease-out"
           style={{ transform: `translateX(calc(-${pageIndex * 100}% + ${deltaX}px))` }}
@@ -76,9 +73,10 @@ const HomeIngredients = ({ isFilterOpen }: { isFilterOpen: boolean }) => {
             const endIdx = startIdx + ITEM_PER_PAGE;
             return (
               <div key={idx} className="w-[90%] mx-[5%] flex-shrink-0 grid grid-cols-5 gap-2">
-                {ingredients.slice(startIdx, endIdx).map((ingredient) => (
-                  <HomeIngredient key={ingredient.ingredientInfoId} ingredient={ingredient} />
-                ))}
+                {ingredients &&
+                  ingredients
+                    .slice(startIdx, endIdx)
+                    .map((ingredient) => <HomeIngredient key={ingredient.ingredientInfoId} ingredient={ingredient} />)}
               </div>
             );
           })}

@@ -1,4 +1,3 @@
-//mocks/handlers.ts
 import { http, HttpResponse } from "msw";
 import { INGREDIENTS, SEARCH_INGREDIENTS_INFO } from "@/data/INGREDIENTS";
 import { INGREDIENT_WITH_NUTRITIONS } from "@/data/NUTRITIONS";
@@ -6,67 +5,71 @@ import { USERS } from "@/data/USERS";
 import RECIPE_LIST, { PAGENATION_RECIPE_LIST } from "@/data/RECIPE_LIST";
 import { DETAIL_RECIPE, DETAIL_RECIPE_CHECK } from "@/data/DETAIL_RECIPE";
 
-const { VITE_API_URL } = import.meta.env;
+// 핸들러에는 절대경로만 사용하도록 고정
+const API = "/v1";
 
 const handlers = [
   // 고내에 저장된 재료 목록 조회
-  http.get(VITE_API_URL + "/v1/ingredient", () => {
+  http.get(`${API}/ingredient`, () => {
     return HttpResponse.json(INGREDIENTS);
   }),
 
   // 재료 입고
-  http.post(VITE_API_URL + "/v1/ingredient", () => {
+  http.post(`${API}/ingredient`, () => {
     return HttpResponse.json({ message: "재료가 성공적으로 입고되었습니다." });
   }),
 
-  // 재료 자동완성 검색 (안 변하는 게 정상입니다)
-  http.get(VITE_API_URL + "/v1/ingredient/search?req=:inputValue", () => {
+  // 재료 자동완성 검색
+  http.get(`${API}/ingredient/search`, ({ request }) => {
+    const url = new URL(request.url);
+    const inputValue = url.searchParams.get("req");
+    console.log("Search inputValue:", inputValue);
     return HttpResponse.json(SEARCH_INGREDIENTS_INFO);
   }),
 
   // 재료 상세 조회
-  http.get(VITE_API_URL + "/v1/ingredient/nutrient/:ingredientId", () => {
+  http.get(`${API}/ingredient/nutrient/:ingredientId`, () => {
     return HttpResponse.json(INGREDIENT_WITH_NUTRITIONS);
   }),
 
   // 재료 삭제
-  http.delete(VITE_API_URL + "/v1/ingredient/release", () => {
+  http.delete(`${API}/ingredient/release`, () => {
     return HttpResponse.json({
       사과: 1,
       대파: 1,
     });
   }),
 
-  //레시피 목록 조회
-  http.post(VITE_API_URL + "/v1/recipe", () => {
+  // 레시피 목록 조회
+  http.post(`${API}/recipe`, () => {
     return HttpResponse.json(RECIPE_LIST);
   }),
 
-  // //레시피 추출
-  http.get(VITE_API_URL + "/v1/recipe/:recipeId", () => {
+  // 단일 레시피 조회
+  http.get(`${API}/recipe/:recipeId`, () => {
     return HttpResponse.json(DETAIL_RECIPE);
   }),
 
-  // //단일 레시피 조회
-  http.get(VITE_API_URL + "/v1/recipe/:recipeId/check", () => {
+  // 단일 레시피 상태 확인
+  http.get(`${API}/recipe/:recipeId/check`, () => {
     return HttpResponse.json(DETAIL_RECIPE_CHECK);
   }),
 
-  //사용자 목록 조회
-  http.get(VITE_API_URL + "/v1/member", () => {
+  // 사용자 목록 조회
+  http.get(`${API}/member`, () => {
     return HttpResponse.json(USERS);
   }),
 
   // 사용자 추가
-  http.post(VITE_API_URL + "/v1/member", () => {
+  http.post(`${API}/member`, () => {
     return HttpResponse.json({
       memberId: 9007199254740991,
       membername: "새로운 사용자",
     });
   }),
 
-  //사용자 이름 수정
-  http.put(VITE_API_URL + "/v1/member/:id", () => {
+  // 사용자 이름 수정
+  http.put(`${API}/member/:id`, () => {
     return HttpResponse.json({
       memberId: 9007199254740991,
       membername: "이름 수정",
@@ -74,14 +77,14 @@ const handlers = [
   }),
 
   // 사용자 삭제
-  http.delete(VITE_API_URL + "/v1/member/:id", () => {
+  http.delete(`${API}/member/:id`, () => {
     return HttpResponse.json({
       message: "사용자가 성공적으로 삭제되었습니다.",
     });
   }),
 
   // 필터 정보 조회
-  http.get(VITE_API_URL + "/v1/filter/:id", () => {
+  http.get(`${API}/filter/:id`, () => {
     return HttpResponse.json({
       memberId: 9007199254740991,
       filterData: {
@@ -95,7 +98,7 @@ const handlers = [
   }),
 
   // 필터 정보 저장
-  http.put(VITE_API_URL + "/v1/filter/:id", () => {
+  http.put(`${API}/filter/:id`, () => {
     return HttpResponse.json({
       memberId: 9007199254740991,
       filterData: {
@@ -108,8 +111,8 @@ const handlers = [
     });
   }),
 
-  //레시피 평가 및 즐겨찾기 기능
-  http.patch(VITE_API_URL + "/v1/member/recipe/:recipeId", () => {
+  // 레시피 평가 및 즐겨찾기
+  http.patch(`${API}/member/recipe/:recipeId`, () => {
     return HttpResponse.json({
       memberId: 2,
       recipeId: 12,
@@ -119,12 +122,29 @@ const handlers = [
     });
   }),
 
-  http.get(VITE_API_URL + "/v1/member/recipe/:memberId/ratings?page=:page", () => {
+  // 사용자의 평가 레시피 목록
+  http.get(`${API}/member/recipe/:memberId/ratings`, ({ params, request }) => {
+    const url = new URL(request.url);
+    const page = url.searchParams.get("page");
+    console.log("Ratings page:", page);
     return HttpResponse.json(PAGENATION_RECIPE_LIST);
   }),
 
-  http.get(VITE_API_URL + "/v1/member/recipe/:memberId/favorites?page=:page", () => {
+  // 사용자의 즐겨찾기 레시피 목록
+  http.get(`${API}/member/recipe/:memberId/favorites`, ({ params, request }) => {
+    const url = new URL(request.url);
+    const page = url.searchParams.get("page");
+    console.log("Favorites page:", page);
     return HttpResponse.json(PAGENATION_RECIPE_LIST);
+  }),
+
+  // 로그인
+  http.post(`${API}/auth/login`, () => {
+    console.log("Mocked login request received");
+    return HttpResponse.json({
+      status: 200,
+      data: "mocked-jwt-token",
+    });
   }),
 ];
 
